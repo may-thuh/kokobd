@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Happy Birthday KoKo! 🎂</title>
+    
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Quicksand for that rounded, friendly feel -->
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+    
+    <!-- Canvas Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        /* Custom Styles & Animations */
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: #fff0f3; /* Soft Pink Background */
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
+        }
+
+        .font-handwriting {
+            font-family: 'Dancing Script', cursive;
+        }
+
+        /* Smooth Fade In/Out */
+        .fade-out {
+            opacity: 0;
+            transition: opacity 1s ease-out;
+            pointer-events: none;
+        }
+
+        .fade-in {
+            animation: fadeIn 1.5s ease-in forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Floating Hearts Animation */
+        .floating-heart {
+            position: fixed;
+            color: rgba(255, 182, 193, 0.6);
+            animation: floatUp 10s linear infinite;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(100vh) scale(0.5); opacity: 0; }
+            50% { opacity: 0.8; }
+            100% { transform: translateY(-10vh) scale(1.5); opacity: 0; }
+        }
+
+        /* Sticker Animations */
+        .sticker-bounce {
+            animation: stickerBounce 2s infinite;
+        }
+        
+        .sticker-sway {
+            animation: sway 3s ease-in-out infinite;
+        }
+
+        @keyframes stickerBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes sway {
+            0%, 100% { transform: rotate(-5deg); }
+            50% { transform: rotate(5deg); }
+        }
+
+        /* Card Styles */
+        .cute-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 10px 25px -5px rgba(255, 182, 193, 0.4);
+            border: 2px solid #ffe4e6;
+        }
+
+        /* Button Pulse */
+        .btn-pulse {
+            animation: pulse-soft 2s infinite;
+        }
+
+        @keyframes pulse-soft {
+            0% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(244, 63, 94, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0); }
+        }
+        
+        /* Gallery Image Hover */
+        .memory-photo {
+            transition: transform 0.3s ease;
+        }
+        .memory-photo:hover {
+            transform: scale(1.05) rotate(2deg);
+        }
+
+        /* Hidden Scrollbar for clean look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #fff0f3;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #fca5a5;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="text-gray-700 antialiased min-h-screen relative">
+
+    <!-- REMOVED EXTERNAL AUDIO TAG TO PREVENT ERRORS -->
+    <!-- Music is now generated via JavaScript Web Audio API -->
+
+    <!-- Floating Background Hearts -->
+    <div id="hearts-container"></div>
+
+    <!-- LANDING PAGE -->
+    <div id="landing-page" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-pink-50 transition-opacity duration-1000 px-4">
+        <div class="text-center p-6 max-w-md w-full relative">
+            <div class="text-5xl md:text-6xl mb-6 animate-bounce">🎁</div>
+            <h1 class="text-3xl md:text-5xl font-bold text-rose-500 mb-2 font-handwriting">
+                Hey KoKo...
+            </h1>
+            <p class="text-base md:text-lg text-gray-600 mb-8">
+                I have something special for you.
+            </p>
+            
+            <button onclick="startExperience()" class="btn-pulse bg-gradient-to-r from-rose-400 to-pink-500 text-white font-bold py-3 px-8 md:py-4 md:px-10 rounded-full shadow-lg transform transition hover:scale-105 flex items-center justify-center mx-auto gap-2 text-lg md:text-xl w-full md:w-auto">
+                <span>Tap to Open</span>
+                <i data-lucide="heart" class="fill-current w-5 h-5"></i>
+            </button>
+
+            <!-- Cute sticker decoration -->
+            <div class="absolute bottom-0 left-0 text-4xl sticker-sway opacity-50 pointer-events-none">🐻</div>
+            <div class="absolute top-0 right-0 text-4xl sticker-sway opacity-50 delay-700 pointer-events-none">🐰</div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT (Hidden Initially) -->
+    <div id="main-content" class="hidden relative z-10 pb-20 overflow-x-hidden">
+        
+        <!-- Music Toggle -->
+        <button id="music-toggle-btn" onclick="toggleMusic()" class="fixed top-4 right-4 z-50 bg-white/80 p-3 rounded-full shadow-md text-rose-500 hover:bg-rose-100 transition backdrop-blur-sm">
+            <!-- Two icons: one for playing, one for muted (hidden by default) -->
+            <i data-lucide="music" class="w-6 h-6 music-icon-on"></i>
+            <i data-lucide="music-2" class="w-6 h-6 music-icon-off hidden"></i>
+        </button>
+
+        <!-- Header Section -->
+        <header class="text-center pt-12 pb-8 px-4 relative">
+            <div class="text-5xl md:text-6xl mb-4 sticker-bounce">🎂</div>
+            <h1 class="text-3xl md:text-6xl font-bold text-rose-600 font-handwriting mb-2 leading-tight">
+                Happy Birthday!
+            </h1>
+            <h2 class="text-lg md:text-2xl text-pink-500 font-semibold">
+                To My Favorite Person 💖
+            </h2>
+            
+            <!-- Cute hugging sticker simulation using emojis -->
+            <div class="flex justify-center items-center gap-2 mt-6 text-4xl md:text-5xl">
+                <span class="sticker-sway">🐻</span>
+                <span class="text-red-500 text-2xl md:text-3xl animate-pulse">❤️</span>
+                <span class="sticker-sway" style="animation-delay: 0.5s">🐰</span>
+            </div>
+        </header>
+
+        <!-- Container -->
+        <div class="max-w-3xl mx-auto px-4 space-y-6 md:space-y-8">
+
+            <!-- Birthday Message Section -->
+            <section class="cute-card p-6 md:p-8 text-center relative overflow-hidden fade-in" style="animation-delay: 0.2s">
+                <div class="absolute top-2 left-2 text-3xl opacity-20 rotate-12">💌</div>
+                <h3 class="text-xl md:text-2xl font-bold text-rose-500 mb-4">A Note for You</h3>
+                <p class="text-base md:text-lg leading-relaxed text-gray-700">
+                    Happy Birthday, Mee Mee's KoKo! This is the first time I get to celebrate your birthday with you, and honestly, it already feels so special.
+                    <br><br>
+                    I may not know what the future holds, but I know one thing for sure — I want to celebrate many, many more birthdays by your side. Here's to more adventures, more dates, more kisses, more cuddles, and more us.
+                </p>
+                <div class="mt-6 font-handwriting text-xl md:text-2xl text-rose-400">
+                    Forever yours, <br> Mee Mee
+                </div>
+            </section>
+
+            <!-- Why I Love You Section -->
+            <section class="fade-in" style="animation-delay: 0.4s">
+                <div class="bg-blue-50/80 rounded-2xl p-5 md:p-6 border-2 border-blue-100 relative">
+                    <div class="absolute -top-4 -right-2 md:-top-6 md:-right-4 text-4xl md:text-5xl sticker-bounce">😻</div>
+                    <h3 class="text-xl md:text-2xl font-bold text-blue-500 mb-6 text-center">Why I Love You 💕</h3>
+                    
+                    <ul class="space-y-3 md:space-y-4 text-sm md:text-base">
+                        <li class="flex items-start gap-3 bg-white p-3 rounded-xl shadow-sm">
+                            <span class="bg-pink-100 text-pink-500 p-2 rounded-full shrink-0"><i data-lucide="smile" class="w-4 h-4 md:w-5 md:h-5"></i></span>
+                            <span class="font-medium pt-1">You treat me to snacks like it’s your love language 🍟🍫</span>
+                        </li>
+                        <li class="flex items-start gap-3 bg-white p-3 rounded-xl shadow-sm">
+                            <span class="bg-purple-100 text-purple-500 p-2 rounded-full shrink-0"><i data-lucide="coffee" class="w-4 h-4 md:w-5 md:h-5"></i></span>
+                            <span class="font-medium pt-1">You take care of me in ways that make me feel soft and spoiled 🥺</span>
+                        </li>
+                        <li class="flex items-start gap-3 bg-white p-3 rounded-xl shadow-sm">
+                            <span class="bg-yellow-100 text-yellow-500 p-2 rounded-full shrink-0"><i data-lucide="sun" class="w-4 h-4 md:w-5 md:h-5"></i></span>
+                            <span class="font-medium pt-1">You somehow always make me smile, even when I’m trying not to 😆</span>
+                        </li>
+                        <li class="flex items-start gap-3 bg-white p-3 rounded-xl shadow-sm">
+                            <span class="bg-rose-100 text-rose-500 p-2 rounded-full shrink-0"><i data-lucide="heart-handshake" class="w-4 h-4 md:w-5 md:h-5"></i></span>
+                            <span class="font-medium pt-1">When you’re around, I feel safe, comfortable, and like everything is okay 🤍</span>
+                        </li>
+                        <li class="flex items-start gap-3 bg-white p-3 rounded-xl shadow-sm">
+                            <span class="bg-indigo-100 text-indigo-500 p-2 rounded-full shrink-0"><i data-lucide="sparkles" class="w-4 h-4 md:w-5 md:h-5"></i></span>
+                            <span class="font-medium pt-1">With you, I can be weird, dramatic, quiet, or silly — and still be loved 😌</span>
+                        </li>
+                        <li class="flex items-start gap-3 bg-white p-3 rounded-xl shadow-sm">
+                            <span class="bg-emerald-100 text-emerald-500 p-2 rounded-full shrink-0"><i data-lucide="calendar-heart" class="w-4 h-4 md:w-5 md:h-5"></i></span>
+                            <span class="font-medium pt-1">You make me want a future with you (yes, including many birthdays together 🎂)</span>
+                        </li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Memory Gallery -->
+            <section class="fade-in" style="animation-delay: 0.6s">
+                <h3 class="text-xl md:text-2xl font-bold text-rose-500 mb-6 text-center flex justify-center items-center gap-2">
+                    Our Memories <i data-lucide="camera" class="w-5 h-5 md:w-6 md:h-6"></i>
+                </h3>
+                
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+                    <!-- Photo 1 -->
+                    <div class="relative group bg-white p-2 rounded-xl shadow-md rotate-2 hover:rotate-0 transition duration-300">
+                        <div class="aspect-square bg-gray-200 rounded-lg overflow-hidden relative">
+                            <!-- 
+                                INSTRUCTION FOR USER: 
+                                1. Rename your photo to 'photo1.jpg' 
+                                2. Put it in the same folder as this HTML file
+                                3. Upload both to Tiny Host
+                            -->
+                            <img src="Images/photo1.jpg" 
+                                 onerror="this.onerror=null;this.src='https://placehold.co/600x600/fff0f3/f43f5e?text=Upload+photo1.jpg'" 
+                                 alt="Our Memory 1" 
+                                 class="w-full h-full object-cover">
+                            <div class="absolute bottom-1 right-1 text-2xl">✨</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Photo 2 -->
+                    <div class="relative group bg-white p-2 rounded-xl shadow-md -rotate-2 hover:rotate-0 transition duration-300">
+                        <div class="aspect-square bg-gray-200 rounded-lg overflow-hidden">
+                            <img src="Images/photo2.jpg" 
+                                 onerror="this.onerror=null;this.src='https://placehold.co/600x600/fff0f3/f43f5e?text=Upload+photo2.jpg'" 
+                                 alt="Our Memory 2" 
+                                 class="w-full h-full object-cover">
+                        </div>
+                         <div class="absolute -top-2 -left-2 text-2xl z-10 sticker-bounce">🥰</div>
+                    </div>
+
+                    <!-- Photo 3 -->
+                    <div class="relative group bg-white p-2 rounded-xl shadow-md rotate-1 hover:rotate-0 transition duration-300">
+                        <div class="aspect-square bg-gray-200 rounded-lg overflow-hidden">
+                            <img src="Images/photo3.jpg" 
+                                 onerror="this.onerror=null;this.src='https://placehold.co/600x600/fff0f3/f43f5e?text=Upload+photo3.jpg'" 
+                                 alt="Our Memory 3" 
+                                 class="w-full h-full object-cover">
+                        </div>
+                        <div class="absolute bottom-1 right-1 text-2xl sticker-sway">💞</div>
+                    </div>
+
+                    <!-- Photo 4 -->
+                    <div class="relative group bg-white p-2 rounded-xl shadow-md -rotate-1 hover:rotate-0 transition duration-300">
+                        <div class="aspect-square bg-gray-200 rounded-lg overflow-hidden">
+                            <img src="Images/photo4.jpg" 
+                                 onerror="this.onerror=null;this.src='https://placehold.co/600x600/fff0f3/f43f5e?text=Upload+photo4.jpg'" 
+                                 alt="Our Memory 4" 
+                                 class="w-full h-full object-cover">
+                        </div>
+                        <div class="absolute -bottom-2 -left-2 text-2xl z-10 sticker-sway">💌</div>
+                    </div>
+                    
+                    <!-- Photo 5 -->
+                     <div class="relative group bg-white p-2 rounded-xl shadow-md rotate-2 hover:rotate-0 transition duration-300">
+                      <div class="aspect-square rounded-lg overflow-hidden relative">
+                        <img src="Images/photo5.jpg" 
+                             onerror="this.onerror=null;this.src='https://placehold.co/600x600/fff0f3/f43f5e?text=Upload+photo5.jpg'" 
+                             alt="Our Memory 5" 
+                             class="w-full h-full object-cover">
+                        <div class="absolute top-1 left-1 text-2xl sticker-bounce">🫶</div>
+                      </div>
+                    </div>
+
+                    <!-- Photo 6 -->
+                    <div class="relative group bg-white p-2 rounded-xl shadow-md -rotate-2 hover:rotate-0 transition duration-300">
+                      <div class="aspect-square rounded-lg overflow-hidden relative">
+                        <img src="Images/photo6.jpg" 
+                             onerror="this.onerror=null;this.src='https://placehold.co/600x600/fff0f3/f43f5e?text=Upload+photo6.jpg'" 
+                             alt="Our Memory 6" 
+                             class="w-full h-full object-cover">
+                        <div class="absolute bottom-1 right-1 text-2xl sticker-sway">💓</div>
+                      </div>
+                    </div>
+                    <!-- Photo 7 -->
+                    <div class="relative group bg-white p-2 rounded-xl shadow-md -rotate-2 hover:rotate-0 transition duration-300">
+                      <div class="aspect-square rounded-lg overflow-hidden relative">
+                        <img src="Images/photo7.jpg" 
+                             onerror="this.onerror=null;this.src='https://placehold.co/600x600/fff0f3/f43f5e?text=Upload+photo6.jpg'" 
+                             alt="Our Memory 7" 
+                             class="w-full h-full object-cover">
+                        <div class="absolute top-1 left-1 text-2xl sticker-bounce">🎀</div>
+                      </div>
+                    </div>
+                    <!-- Photo 8 -->
+                    <div class="relative group bg-white p-2 rounded-xl shadow-md -rotate-2 hover:rotate-0 transition duration-300">
+                      <div class="aspect-square rounded-lg overflow-hidden relative">
+                        <img src="Images/photo8.jpg" 
+                             onerror="this.onerror=null;this.src='https://placehold.co/600x600/fff0f3/f43f5e?text=Upload+photo6.jpg'" 
+                             alt="Our Memory 8" 
+                             class="w-full h-full object-cover">
+                        <div class="absolute bottom-1 right-1 text-2xl sticker-sway">🧸</div>
+                      </div>
+                    </div>
+                    <!-- Photo 9 -->
+                    <div class="relative group bg-white p-2 rounded-xl shadow-md -rotate-2 hover:rotate-0 transition duration-300">
+                      <div class="aspect-square rounded-lg overflow-hidden relative">
+                        <img src="Images/photo9.jpg" 
+                             onerror="this.onerror=null;this.src='https://placehold.co/600x600/fff0f3/f43f5e?text=Upload+photo6.jpg'" 
+                             alt="Our Memory 9" 
+                             class="w-full h-full object-cover">
+                        <div class="absolute top-1 left-1 text-2xl sticker-bounce">🫧</div>
+                      </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Hidden Surprise Section -->
+            <section class="py-8 fade-in" style="animation-delay: 0.8s">
+                <div class="text-center">
+                    <p class="text-lg text-gray-500 mb-4">One last thing...</p>
+                    <button id="surpriseBtn" onclick="revealSurprise()" class="bg-gradient-to-r from-purple-400 to-indigo-500 text-white font-bold py-3 px-8 rounded-full shadow-lg transform transition hover:scale-105 active:scale-95 flex items-center justify-center mx-auto gap-2">
+                        <i data-lucide="gift" class="w-5 h-5"></i>
+                        Click for a Surprise
+                    </button>
+                </div>
+
+                <!-- The Hidden Card -->
+                <div id="surpriseCard" class="hidden mt-6 transform transition-all duration-500 scale-90 opacity-0 px-2">
+                    <div class="bg-white rounded-2xl p-6 md:p-8 border-4 border-dashed border-pink-300 text-center relative shadow-xl">
+                        <div class="absolute -top-5 left-1/2 transform -translate-x-1/2 bg-pink-500 text-white px-4 py-1 rounded-full text-sm font-bold uppercase tracking-wide whitespace-nowrap">
+                            Coupon
+                        </div>
+                        <h4 class="text-xl md:text-2xl font-bold text-gray-800 mt-2">Birthday Date! 🍝</h4>
+                        <p class="text-sm md:text-base text-gray-600 mt-2">
+                            Valid for one romantic date at your favorite place. <br>
+                            (Your treat, obviously!😜)
+                        </p>
+                        <div class="mt-6 text-5xl md:text-6xl animate-bounce">🎟️</div>
+                        <p class="text-xs text-gray-400 mt-4">No expiration date. Non-transferable.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Footer -->
+        <footer class="text-center text-gray-400 text-xs md:text-sm mt-12 mb-4">
+            Made with <i data-lucide="heart" class="w-3 h-3 inline text-red-400 fill-current"></i> for you
+        </footer>
+    </div>
+
+    <script>
+        // Initialize Icons
+        lucide.createIcons();
+
+        // Variables
+        const landingPage = document.getElementById('landing-page');
+        const mainContent = document.getElementById('main-content');
+        const musicBtn = document.getElementById('music-toggle-btn');
+        
+        // --- WEB AUDIO API MUSIC BOX IMPLEMENTATION ---
+        let audioCtx = null;
+        let isPlaying = false;
+        let nextNoteTime = 0.0;
+        let timerID;
+        let melodyIndex = 0;
+        
+        // Frequencies for C Major
+        const notes = {
+            'G3': 196.00, 'A3': 220.00, 'B3': 246.94,
+            'C4': 261.63, 'D4': 293.66, 'E4': 329.63, 'F4': 349.23, 'G4': 392.00, 'A4': 440.00, 'B4': 493.88,
+            'C5': 523.25, 'D5': 587.33, 'E5': 659.25, 'F5': 698.46, 'G5': 783.99
+        };
+
+        // Happy Birthday Melody (Note, Duration in beats)
+        const melody = [
+            {n:'G4', d:0.5}, {n:'G4', d:0.5}, {n:'A4', d:1}, {n:'G4', d:1}, {n:'C5', d:1}, {n:'B4', d:2},
+            {n:'G4', d:0.5}, {n:'G4', d:0.5}, {n:'A4', d:1}, {n:'G4', d:1}, {n:'D5', d:1}, {n:'C5', d:2},
+            {n:'G4', d:0.5}, {n:'G4', d:0.5}, {n:'G5', d:1}, {n:'E5', d:1}, {n:'C5', d:1}, {n:'B4', d:1}, {n:'A4', d:1}, // "Happy birthday dear KoKo"
+            {n:'F5', d:0.5}, {n:'F5', d:0.5}, {n:'E5', d:1}, {n:'C5', d:1}, {n:'D5', d:1}, {n:'C5', d:2.5}
+        ];
+
+        const tempo = 120;
+        const secondsPerBeat = 60.0 / tempo;
+        const lookahead = 25.0; // How frequently to call scheduling function (in milliseconds)
+        const scheduleAheadTime = 0.1; // How far ahead to schedule audio (sec)
+
+        function nextNote() {
+            const currentNote = melody[melodyIndex];
+            const duration = currentNote.d * secondsPerBeat;
+            
+            nextNoteTime += duration;
+            
+            melodyIndex++;
+            if (melodyIndex >= melody.length) {
+                melodyIndex = 0; // Loop
+                nextNoteTime += 1.0; // Pause before loop
+            }
+        }
+
+        function playNote(freq, time, duration) {
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            osc.type = 'sine'; // Soft sine wave (music box / celesta style)
+            osc.frequency.value = freq;
+            
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            // Envelope to make it sound soft
+            gainNode.gain.setValueAtTime(0, time);
+            gainNode.gain.linearRampToValueAtTime(0.3, time + 0.05); // Attack
+            gainNode.gain.exponentialRampToValueAtTime(0.001, time + duration - 0.05); // Decay
+            
+            osc.start(time);
+            osc.stop(time + duration);
+        }
+
+        function scheduler() {
+            while (nextNoteTime < audioCtx.currentTime + scheduleAheadTime) {
+                const noteObj = melody[melodyIndex];
+                if (notes[noteObj.n]) {
+                    playNote(notes[noteObj.n], nextNoteTime, noteObj.d * secondsPerBeat);
+                }
+                nextNote();
+            }
+            if (isPlaying) {
+                timerID = window.setTimeout(scheduler, lookahead);
+            }
+        }
+
+        function initAudio() {
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContext();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function startMusic() {
+            initAudio();
+            if (!isPlaying) {
+                isPlaying = true;
+                melodyIndex = 0;
+                nextNoteTime = audioCtx.currentTime + 0.1;
+                scheduler();
+                updateMusicUI(true);
+            }
+        }
+
+        function stopMusic() {
+            isPlaying = false;
+            if(timerID) window.clearTimeout(timerID);
+            updateMusicUI(false);
+        }
+
+        function toggleMusic() {
+            if (isPlaying) {
+                stopMusic();
+            } else {
+                startMusic();
+            }
+        }
+
+        function updateMusicUI(playing) {
+            const onIcon = musicBtn.querySelector('.music-icon-on');
+            const offIcon = musicBtn.querySelector('.music-icon-off');
+
+            if (playing) {
+                if(onIcon) onIcon.classList.remove('hidden');
+                if(offIcon) offIcon.classList.add('hidden');
+                musicBtn.classList.remove('opacity-50');
+            } else {
+                if(onIcon) onIcon.classList.add('hidden');
+                if(offIcon) offIcon.classList.remove('hidden');
+                musicBtn.classList.add('opacity-50');
+            }
+        }
+
+        // --- END AUDIO LOGIC ---
+
+        // Create background floating hearts
+        function createHearts() {
+            const container = document.getElementById('hearts-container');
+            const heartCount = 15; // Number of background hearts
+
+            for (let i = 0; i < heartCount; i++) {
+                const heart = document.createElement('div');
+                heart.innerHTML = '❤';
+                heart.className = 'floating-heart text-2xl md:text-4xl';
+                heart.style.left = Math.random() * 100 + 'vw';
+                heart.style.animationDuration = (Math.random() * 5 + 5) + 's';
+                heart.style.animationDelay = Math.random() * 5 + 's';
+                container.appendChild(heart);
+            }
+        }
+
+        // The "Tap to Open" Action
+        function startExperience() {
+            // Start Music immediately on user interaction
+            startMusic();
+
+            landingPage.classList.add('fade-out');
+            
+            setTimeout(() => {
+                landingPage.style.display = 'none';
+                mainContent.classList.remove('hidden');
+                fireConfetti();
+            }, 800);
+        }
+
+        // Reveal the "Hidden Surprise"
+        function revealSurprise() {
+            const btn = document.getElementById('surpriseBtn');
+            const card = document.getElementById('surpriseCard');
+            
+            btn.style.display = 'none';
+            card.classList.remove('hidden');
+            setTimeout(() => {
+                card.classList.remove('scale-90', 'opacity-0');
+                card.classList.add('scale-100', 'opacity-100');
+                fireConfetti();
+            }, 50);
+        }
+
+        // Confetti Effect Function
+        function fireConfetti() {
+            const duration = 3000;
+            const animationEnd = Date.now() + duration;
+            const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+            const randomInRange = (min, max) => Math.random() * (max - min) + min;
+
+            const interval = setInterval(function() {
+                const timeLeft = animationEnd - Date.now();
+
+                if (timeLeft <= 0) {
+                    return clearInterval(interval);
+                }
+
+                const particleCount = 50 * (timeLeft / duration);
+                
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+            }, 250);
+        }
+
+        createHearts();
+
+    </script>
+</body>
+</html>
